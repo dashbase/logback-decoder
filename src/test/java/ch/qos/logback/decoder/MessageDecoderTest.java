@@ -52,6 +52,25 @@ public class MessageDecoderTest extends DecoderTest {
     assertEquals("START handlePresence(PbxUserPresence{extension='1234', message='', status=3, pbxId='customerABC', pnRegistered=false, timestamp=0})", event.getMessage());
     assertEquals("123abc", event.getMDCPropertyMap().get("SID"));
     assertEquals("456xyz", event.getMDCPropertyMap().get("CID"));
+
+    // pattern with default values
+    decoder.setLayoutPattern("%d{HH:mm:ss.SSS} [%thread] %-5level %logger{35} SID:%X{SID:-123} CID:%X{CID:-456} - %msg%n");
+    event = (StaticLoggingEvent)decoder.decode(input);
+    assertEquals("123abc", event.getMDCPropertyMap().get("SID"));
+    assertEquals("456xyz", event.getMDCPropertyMap().get("CID"));
+
+    // pattern without key
+    decoder.setLayoutPattern("%d{HH:mm:ss.SSS} [%thread] %-5level %logger{35} ID:%X - %msg%n");
+    input = "20:44:20.120 [JGroups-Executor-17] INFO c._.u.s.xmpp.server.XMPPConnection ID:SID=123abc,CID=456xyz - START handlePresence(PbxUserPresence{extension='1234', message='', status=3, pbxId='customerABC', pnRegistered=false, timestamp=0})\n";
+    event = (StaticLoggingEvent)decoder.decode(input);
+    assertEquals("123abc", event.getMDCPropertyMap().get("SID"));
+    assertEquals("456xyz", event.getMDCPropertyMap().get("CID"));
+
+    decoder.setLayoutPattern("%d{HH:mm:ss.SSS} [%thread] %-5level %logger{35} ID:%X{} - %msg%n");
+    input = "20:44:20.120 [JGroups-Executor-17] INFO c._.u.s.xmpp.server.XMPPConnection ID:SID=123abc, CID=456xyz - START handlePresence(PbxUserPresence{extension='1234', message='', status=3, pbxId='customerABC', pnRegistered=false, timestamp=0})\n";
+    event = (StaticLoggingEvent)decoder.decode(input);
+    assertEquals("123abc", event.getMDCPropertyMap().get("SID"));
+    assertEquals("456xyz", event.getMDCPropertyMap().get("CID"));
   }
 
   private String getMessage(String message) {

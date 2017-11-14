@@ -27,8 +27,8 @@ public class MDCRegexConverter extends DynamicConverter<InputStream> {
   @Override
   public void start() {
     key = getFirstOption();
-    if (key != null && key.indexOf(':') > 0) {
-      key = key.substring(key.indexOf((':') + 1));
+    if (key != null && key.indexOf(":-") > 0) {
+      key = key.substring(0, key.indexOf(":-"));
     }
   }
 
