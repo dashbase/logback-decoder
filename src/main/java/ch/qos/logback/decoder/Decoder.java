@@ -80,8 +80,9 @@ public abstract class Decoder {
    */
   public ILoggingEvent decode(String inputLine) {
 
-    IStaticLoggingEvent event = null;
+    StaticLoggingEvent event = null;
     Matcher matcher = regexPattern.matcher(inputLine);
+    Map<String, String> mdcProperties = null;
 
     logger.trace("regex: {}", regexPattern.toString());
 
@@ -96,6 +97,31 @@ public abstract class Decoder {
 
         logger.debug("{} = {}", pattName, field);
 
+        if (PatternNames.MDC.equals(pattName)) {
+          // value is CSV. Convert it into Map.
+          for (String kv : field.split(",")) {
+            String[] keyValue = kv.trim().split("=");
+            if (keyValue.length == 2) {
+              if (mdcProperties == null) {
+                mdcProperties = new HashMap<String, String>();
+              }
+              mdcProperties.put(keyValue[0], keyValue[1]);
+            } else {
+              logger.warn("Cannot parse {} in {}", kv, field);
+            }
+          }
+          continue;
+        }
+
+        if (pattName.startsWith(PatternNames.MDC_PREFIX)) {
+          String key = pattName.substring(PatternNames.MDC_PREFIX.length());
+          if (mdcProperties == null) {
+            mdcProperties = new HashMap<String, String>();
+          }
+          mdcProperties.put(key, field);
+          continue;
+        }
+
         FieldCapturer<IStaticLoggingEvent> parser = DECODER_MAP.get(pattName);
         if (parser == null) {
           logger.warn("No decoder for [{}, {}]", pattName, field);
@@ -106,6 +132,11 @@ public abstract class Decoder {
         patternIndex++;
       }
     }
+
+    if (mdcProperties != null) {
+      event.setMDCPropertyMap(mdcProperties);
+    }
+
     return event;
   }
 

@@ -12,6 +12,7 @@
  */
 package ch.qos.logback.decoder;
 
+import ch.qos.logback.classic.Level;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -38,6 +39,19 @@ public class MessageDecoderTest extends DecoderTest {
   @Test
   public void testMultiline() {
     assertEquals("This\nis\ntest.", getMessage("This\nis\ntest."));
+  }
+
+  @Test
+  public void testMDCProperties() {
+    String input = "20:44:20.120 [JGroups-Executor-17] INFO c._.u.s.xmpp.server.XMPPConnection SID:123abc CID:456xyz - START handlePresence(PbxUserPresence{extension='1234', message='', status=3, pbxId='customerABC', pnRegistered=false, timestamp=0})\n";
+    decoder.setLayoutPattern("%d{HH:mm:ss.SSS} [%thread] %-5level %logger{35} SID:%X{SID} CID:%X{CID} - %msg%n");
+    StaticLoggingEvent event = (StaticLoggingEvent)decoder.decode(input);
+    assertEquals("JGroups-Executor-17", event.getThreadName());
+    assertEquals(Level.INFO, event.getLevel());
+    assertEquals("c._.u.s.xmpp.server.XMPPConnection", event.getLoggerName());
+    assertEquals("START handlePresence(PbxUserPresence{extension='1234', message='', status=3, pbxId='customerABC', pnRegistered=false, timestamp=0})", event.getMessage());
+    assertEquals("123abc", event.getMDCPropertyMap().get("SID"));
+    assertEquals("456xyz", event.getMDCPropertyMap().get("CID"));
   }
 
   private String getMessage(String message) {
