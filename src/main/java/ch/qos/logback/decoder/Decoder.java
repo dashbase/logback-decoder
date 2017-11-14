@@ -110,23 +110,19 @@ public abstract class Decoder {
               logger.warn("Cannot parse {} in {}", kv, field);
             }
           }
-          continue;
-        }
-
-        if (pattName.startsWith(PatternNames.MDC_PREFIX)) {
+        } else if (pattName.startsWith(PatternNames.MDC_PREFIX)) {
           String key = pattName.substring(PatternNames.MDC_PREFIX.length());
           if (mdcProperties == null) {
             mdcProperties = new HashMap<String, String>();
           }
           mdcProperties.put(key, field);
-          continue;
-        }
-
-        FieldCapturer<IStaticLoggingEvent> parser = DECODER_MAP.get(pattName);
-        if (parser == null) {
-          logger.warn("No decoder for [{}, {}]", pattName, field);
         } else {
-          parser.captureField(event, field, getPatternInfo(patternIndex, pattName));
+          FieldCapturer<IStaticLoggingEvent> parser = DECODER_MAP.get(pattName);
+          if (parser == null) {
+            logger.warn("No decoder for [{}, {}]", pattName, field);
+          } else {
+            parser.captureField(event, field, getPatternInfo(patternIndex, pattName));
+          }
         }
 
         patternIndex++;
