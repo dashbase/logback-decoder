@@ -12,11 +12,14 @@
  */
 package ch.qos.logback.decoder;
 
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import ch.qos.logback.core.pattern.parser2.DatePatternInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +40,7 @@ public abstract class Decoder {
   private Pattern regexPattern;
   private String layoutPattern;
   private List<PatternInfo> patternInfo;
+  private ZoneId timezone = ZoneOffset.UTC;
 
   /**
    * Constructs a {@code Decoder}
@@ -60,6 +64,10 @@ public abstract class Decoder {
       patternInfo = null;
     }
     this.layoutPattern = layoutPattern;
+  }
+
+  public void setTimezone(ZoneId timezone) {
+    this.timezone = timezone;
   }
 
   /**
@@ -161,6 +169,10 @@ public abstract class Decoder {
               new Object[] { patternIndex, fieldName, infName });
 
         inf = null;
+      }
+
+      if (inf instanceof DatePatternInfo) {
+        ((DatePatternInfo) inf).setTimezone(timezone);
       }
     }
     return inf;

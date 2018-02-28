@@ -14,6 +14,7 @@ package ch.qos.logback.core.pattern.parser2;
 
 import ch.qos.logback.core.CoreConstants;
 
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
@@ -25,6 +26,7 @@ public class DatePatternInfo extends PatternInfo {
       DateTimeFormatter.ofPattern(CoreConstants.ISO8601_PATTERN).withZone(ZoneOffset.UTC);
 
   private DateTimeFormatter dateFormat;
+  private ZoneId timezone = ZoneOffset.UTC;
 
   public DatePatternInfo() {
     dateFormat = ISO8601_FORMATTER;
@@ -44,5 +46,13 @@ public class DatePatternInfo extends PatternInfo {
    */
   public void setDateFormat(DateTimeFormatter dateFormat) {
     this.dateFormat = dateFormat;
+  }
+
+  public void setTimezone(ZoneId timezone) {
+    this.timezone = timezone;
+  }
+
+  public ZoneId getTimezone() {
+    return timezone;
   }
 }

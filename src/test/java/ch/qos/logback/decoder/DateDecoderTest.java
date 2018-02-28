@@ -19,6 +19,7 @@ import org.junit.Test;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Calendar;
 import java.util.TimeZone;
@@ -89,6 +90,12 @@ public class DateDecoderTest extends DecoderTest {
     final String FORMAT   = "yyyy-MM-dd hh:mm:ss.SSSa";
     final String INPUT    = "2013-06-15 03:55:00.123PM";
     assertThatDateDecoded(TIMEZONE, FORMAT, INPUT);
+  }
+
+  @Test
+  public void testTimezone() throws ParseException {
+
+
   }
 
   private void assertThatDateDecoded(String timeZoneName, String format, String input) throws ParseException {

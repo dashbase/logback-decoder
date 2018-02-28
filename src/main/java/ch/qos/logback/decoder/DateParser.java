@@ -47,8 +47,8 @@ public class DateParser implements FieldCapturer<IStaticLoggingEvent> {
         // If the date pattern only contains time, use the today's year/month/day when parsing the input string.
         if (dtf != DatePatternInfo.ISO8601_FORMATTER
             && !dpi.getOption().toLowerCase().contains("d")) {
-          ZoneId zoneId = dtf.getZone();
-          LocalDate today = LocalDate.now(zoneId == null ? ZoneOffset.UTC: zoneId);
+          ZoneId zoneId = dtf.getZone() == null ? dpi.getTimezone() : dtf.getZone();
+          LocalDate today = LocalDate.now(zoneId);
           dtf = new DateTimeFormatterBuilder().append(dtf)
               .parseDefaulting(ChronoField.YEAR, today.getYear())
               .parseDefaulting(ChronoField.MONTH_OF_YEAR, today.getMonthValue())
