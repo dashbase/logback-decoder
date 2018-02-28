@@ -23,10 +23,10 @@ import java.time.format.DateTimeFormatter;
  */
 public class DatePatternInfo extends PatternInfo {
   public static final DateTimeFormatter ISO8601_FORMATTER =
-      DateTimeFormatter.ofPattern(CoreConstants.ISO8601_PATTERN).withZone(ZoneOffset.UTC);
+      DateTimeFormatter.ofPattern(CoreConstants.ISO8601_PATTERN);
 
   private DateTimeFormatter dateFormat;
-  private ZoneId timezone = ZoneOffset.UTC;
+  private ZoneId timeZone = ZoneOffset.UTC;
 
   public DatePatternInfo() {
     dateFormat = ISO8601_FORMATTER;
@@ -48,11 +48,11 @@ public class DatePatternInfo extends PatternInfo {
     this.dateFormat = dateFormat;
   }
 
-  public void setTimezone(ZoneId timezone) {
-    this.timezone = timezone;
+  public void setTimeZone(ZoneId timeZone) {
+    this.timeZone = timeZone;
   }
 
-  public ZoneId getTimezone() {
-    return timezone;
+  public ZoneId getTimeZone() {
+    return timeZone;
   }
 }

@@ -40,7 +40,6 @@ public abstract class Decoder {
   private Pattern regexPattern;
   private String layoutPattern;
   private List<PatternInfo> patternInfo;
-  private ZoneId timezone = ZoneOffset.UTC;
 
   /**
    * Constructs a {@code Decoder}
@@ -66,10 +65,6 @@ public abstract class Decoder {
     this.layoutPattern = layoutPattern;
   }
 
-  public void setTimezone(ZoneId timezone) {
-    this.timezone = timezone;
-  }
-
   /**
    * Gets the layout pattern used for decoding
    *
@@ -87,7 +82,10 @@ public abstract class Decoder {
    * if line cannot be decoded
    */
   public ILoggingEvent decode(String inputLine) {
+    return decode(inputLine, ZoneOffset.UTC);
+  }
 
+  public ILoggingEvent decode(String inputLine, ZoneId timeZone) {
     StaticLoggingEvent event = null;
     Matcher matcher = regexPattern.matcher(inputLine);
     Map<String, String> mdcProperties = null;
@@ -133,7 +131,7 @@ public abstract class Decoder {
           if (parser == null) {
             logger.warn("No decoder for [{}, {}]", pattName, field);
           } else {
-            parser.captureField(event, field, getPatternInfo(patternIndex, pattName));
+            parser.captureField(event, field, getPatternInfo(patternIndex, pattName, timeZone));
           }
         }
 
@@ -155,7 +153,7 @@ public abstract class Decoder {
    * @param fieldName the name of the sub-pattern
    * @return the pattern info or {@code null} if not found
    */
-  private PatternInfo getPatternInfo(int patternIndex, String fieldName) {
+  private PatternInfo getPatternInfo(int patternIndex, String fieldName, ZoneId timeZone) {
     PatternInfo inf = patternInfo.get(patternIndex);
     if (inf != null) {
 
@@ -172,7 +170,7 @@ public abstract class Decoder {
       }
 
       if (inf instanceof DatePatternInfo) {
-        ((DatePatternInfo) inf).setTimezone(timezone);
+        ((DatePatternInfo) inf).setTimeZone(timeZone);
       }
     }
     return inf;
