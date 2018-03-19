@@ -127,12 +127,6 @@
       <version>3.1</version>
     </dependency>
 
-    <dependency>
-      <groupId>com.github.tony19</groupId>
-      <artifactId>named-regexp</artifactId>
-      <version>0.2.4</version>
-    </dependency>
-
   </dependencies>
 
   <build>

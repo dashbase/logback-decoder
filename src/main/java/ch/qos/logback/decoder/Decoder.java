@@ -14,10 +14,10 @@ package ch.qos.logback.decoder;
 
 import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import ch.qos.logback.core.pattern.parser2.DatePatternInfo;
 import org.slf4j.Logger;
@@ -28,16 +28,17 @@ import ch.qos.logback.core.pattern.parser2.PatternInfo;
 import ch.qos.logback.core.pattern.parser2.PatternParser;
 import ch.qos.logback.decoder.regex.PatternLayoutRegexUtil;
 
-import com.google.code.regexp.Matcher;
-import com.google.code.regexp.Pattern;
-
 /**
  * A {@code Decoder} parses information from a log string and produces an
  * {@link ILoggingEvent} as a result.
  */
 public abstract class Decoder {
+  private static final Pattern NAMED_GROUP = Pattern.compile("\\(\\?<([a-zA-Z][a-zA-Z0-9]*)>");
+
   private final Logger logger;
+
   private Pattern regexPattern;
+  private Set<String> namedGroups;
   private String layoutPattern;
   private List<PatternInfo> patternInfo;
 
@@ -57,6 +58,11 @@ public abstract class Decoder {
     if (layoutPattern != null) {
       String regex = new PatternLayoutRegexUtil().toRegex(layoutPattern) + "$";
       regexPattern = Pattern.compile(regex);
+      namedGroups = new HashSet<>();
+      Matcher matcher = NAMED_GROUP.matcher(regex);
+      while (matcher.find()) {
+        namedGroups.add(matcher.group(1));
+      }
       patternInfo = PatternParser.parse(layoutPattern);
     } else {
       regexPattern = null;
@@ -96,10 +102,8 @@ public abstract class Decoder {
       event = new StaticLoggingEvent();
 
       int patternIndex = 0;
-      Map<String, String> groupMap = matcher.namedGroups();
-      for (Entry<String, String> entry : groupMap.entrySet()) {
-        String pattName = entry.getKey();
-        String field = entry.getValue();
+      for (String pattName: namedGroups) {
+        String field = matcher.group(pattName);
 
         logger.debug("{} = {}", pattName, field);
 

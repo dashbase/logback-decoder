@@ -12,16 +12,14 @@
  */
 package ch.qos.logback.decoder;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-
-import com.google.code.regexp.Matcher;
-import com.google.code.regexp.Pattern;
-
 import ch.qos.logback.core.pattern.parser2.PatternInfo;
 import ch.qos.logback.decoder.regex.RegexPatterns;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A {@code CallerStackTraceParser} parses a caller-stacktrace field (%caller) from a string
