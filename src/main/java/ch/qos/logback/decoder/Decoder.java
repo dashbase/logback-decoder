@@ -94,7 +94,8 @@ public abstract class Decoder {
   public ILoggingEvent decode(String inputLine, ZoneId timeZone) {
     StaticLoggingEvent event = null;
     Matcher matcher = regexPattern.matcher(inputLine);
-    Map<String, String> mdcProperties = null;
+    Map<String, String> mdcProperties = new HashMap<String, String>();
+    Map<String, Offset> mdcPropertyOffsets = new HashMap<String, Offset>();
 
     logger.trace("regex: {}", regexPattern.toString());
 
@@ -104,38 +105,39 @@ public abstract class Decoder {
       int patternIndex = 0;
       for (String pattName: namedGroups) {
         String field = matcher.group(pattName);
+        Offset offset = new Offset(matcher.start(pattName), matcher.end(pattName));
 
         logger.debug("{} = {}", pattName, field);
 
         if (PatternNames.MDC.equals(pattName)) {
           // value is CSV. Convert it into Map.
+          int startOffset = offset.start;
           for (String kv : field.split(",")) {
-            String[] keyValue = kv.trim().split("=");
+            String[] keyValue = kv.split("=");
             if (keyValue.length == 2) {
-              if (mdcProperties == null) {
-                mdcProperties = new HashMap<String, String>();
-              }
-              mdcProperties.put(keyValue[0], keyValue[1]);
+              String key = keyValue[0].trim();
+              mdcProperties.put(key, keyValue[1]);
+              mdcPropertyOffsets.put(key,
+                  new Offset(startOffset + keyValue[0].length() + 1, startOffset + kv.length()));
             } else {
               logger.warn("Cannot parse {} in {}", kv, field);
             }
+            startOffset += kv.length() + 1;
           }
         } else if (pattName.startsWith(PatternNames.MDC_PREFIX)) {
           if (!field.isEmpty()) {
             String key = pattName.substring(PatternNames.MDC_PREFIX.length());
-            if (mdcProperties == null) {
-              mdcProperties = new HashMap<String, String>();
-            }
             mdcProperties.put(key, field);
+            mdcPropertyOffsets.put(key, offset);
           } else {
             logger.debug("empty field for {}", pattName);
           }
         } else {
-          FieldCapturer<IStaticLoggingEvent> parser = DECODER_MAP.get(pattName);
+          FieldCapturer<StaticLoggingEvent> parser = DECODER_MAP.get(pattName);
           if (parser == null) {
             logger.warn("No decoder for [{}, {}]", pattName, field);
           } else {
-            parser.captureField(event, field, getPatternInfo(patternIndex, pattName, timeZone));
+            parser.captureField(event, field, offset, getPatternInfo(patternIndex, pattName, timeZone));
           }
         }
 
@@ -143,8 +145,9 @@ public abstract class Decoder {
       }
     }
 
-    if (mdcProperties != null) {
+    if (!mdcProperties.isEmpty()) {
       event.setMDCPropertyMap(mdcProperties);
+      event.mdcPropertyOffsets = mdcPropertyOffsets;
     }
 
     return event;
@@ -181,8 +184,8 @@ public abstract class Decoder {
   }
 
   @SuppressWarnings("serial")
-  private static final Map<String, FieldCapturer<IStaticLoggingEvent>> DECODER_MAP =
-    new HashMap<String, FieldCapturer<IStaticLoggingEvent>>() {{
+  private static final Map<String, FieldCapturer<StaticLoggingEvent>> DECODER_MAP =
+    new HashMap<String, FieldCapturer<StaticLoggingEvent>>() {{
       put(PatternNames.CALLER_STACKTRACE, new CallerStackTraceParser());
       put(PatternNames.CLASS_OF_CALLER, new ClassOfCallerParser());
       put(PatternNames.CONTEXT_NAME, new ContextNameParser());
