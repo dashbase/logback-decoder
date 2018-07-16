@@ -60,10 +60,10 @@ public class DateParser implements FieldCapturer<StaticLoggingEvent> {
         ZonedDateTime date = ZonedDateTime.parse(fieldAsStr, dtf);
         event.setTimeStamp(date.toInstant().toEpochMilli());
       } catch (DateTimeParseException e) {
-        logger().error(e.toString());
+        logger().error("Failed to parse a date", e);
       }
     } else {
-      logger().debug("expected DatePatternInfo, actual {}", info.getClass().getName());
+      logger().error("expected DatePatternInfo, actual {}", info);
     }
   }
 }

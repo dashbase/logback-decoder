@@ -38,7 +38,7 @@ public abstract class Decoder {
   private final Logger logger;
 
   private Pattern regexPattern;
-  private Set<String> namedGroups;
+  private List<String> namedGroups;
   private String layoutPattern;
   private List<PatternInfo> patternInfo;
 
@@ -58,7 +58,7 @@ public abstract class Decoder {
     if (layoutPattern != null) {
       String regex = new PatternLayoutRegexUtil().toRegex(layoutPattern) + "$";
       regexPattern = Pattern.compile(regex);
-      namedGroups = new HashSet<>();
+      namedGroups = new ArrayList<>();
       Matcher matcher = NAMED_GROUP.matcher(regex);
       while (matcher.find()) {
         namedGroups.add(matcher.group(1));
@@ -168,7 +168,7 @@ public abstract class Decoder {
       // matches the given name
       String infName = PatternNames.getFullName(inf.getName());
       if (infName != null && !infName.equals(fieldName)) {
-        logger.debug(
+        logger.error(
               "BUG!! Saw a field name that did not match the pattern info's " +
               "name! (index={} expected={} actual={})",
               new Object[] { patternIndex, fieldName, infName });
