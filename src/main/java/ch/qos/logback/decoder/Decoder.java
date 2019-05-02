@@ -17,6 +17,7 @@ import ch.qos.logback.core.pattern.parser2.DatePatternInfo;
 import ch.qos.logback.core.pattern.parser2.PatternInfo;
 import ch.qos.logback.core.pattern.parser2.PatternParser;
 import ch.qos.logback.decoder.regex.PatternLayoutRegexUtil;
+import ch.qos.logback.decoder.regex.RegexPatterns;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,9 +52,15 @@ public class Decoder {
 
     this.layoutPattern = layoutPattern;
 
+    // ignore the last newline %n
+    if (layoutPattern.endsWith("%n")) {
+      layoutPattern = layoutPattern.substring(0, layoutPattern.length() - 2);
+    }
+
     PatternLayoutRegexUtil util = new PatternLayoutRegexUtil();
     String regex = util.toRegex(layoutPattern) + "$";
-    regexPattern = Pattern.compile(regex);
+    this.regexPattern = Pattern.compile(regex);
+
     namedGroups = new ArrayList<>();
     Matcher matcher = NAMED_GROUP.matcher(regex);
     while (matcher.find()) {

@@ -61,7 +61,7 @@ public class MethodOfCallerDecoderTest {
   }
 
   private void assertNoEventWhenMethodNameIs(String value) {
-    final String INPUT = "2013-06-12 15:27:15.044 INFO  [" + value + "]: foo bar message\n";
+    final String INPUT = "2013-06-12 15:27:15.044 INFO  [" + value + "]: foo bar message";
     final String PATT = "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%method]: %msg%n";
     Decoder decoder = new Decoder(PATT);
     StaticLoggingEvent event = (StaticLoggingEvent)decoder.decode(INPUT);
@@ -69,7 +69,7 @@ public class MethodOfCallerDecoderTest {
   }
 
   private String getMethodName(String methodName) {
-    final String INPUT = "2013-06-12 15:27:15.044 INFO  [" + methodName + "]: foo bar message\n";
+    final String INPUT = "2013-06-12 15:27:15.044 INFO  [" + methodName + "]: foo bar message";
     final String PATT = "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%method]: %msg%n";
     Decoder decoder = new Decoder(PATT);
     StaticLoggingEvent event = (StaticLoggingEvent)decoder.decode(INPUT);

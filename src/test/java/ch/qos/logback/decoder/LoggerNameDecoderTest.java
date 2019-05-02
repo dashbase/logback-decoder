@@ -42,7 +42,7 @@ public class LoggerNameDecoderTest {
   }
 
   private String getLoggerName(String name) {
-    final String INPUT = "2013-06-12 15:27:15.044 INFO  <" + name + ">: foo bar message\n";
+    final String INPUT = "2013-06-12 15:27:15.044 INFO  <" + name + ">: foo bar message";
     final String PATT = "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level <%logger{0}>: %msg%n";
     Decoder decoder = new Decoder(PATT);
     StaticLoggingEvent event = (StaticLoggingEvent) decoder.decode(INPUT);

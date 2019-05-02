@@ -33,7 +33,7 @@ public class LevelDecoderTest {
   public void decodesLevel() throws ParseException {
     Decoder decoder = new Decoder("%level %msg%n");
     final String LEVEL = "TRACE";
-    ILoggingEvent event = decoder.decode(LEVEL + " Hello world!\n");
+    ILoggingEvent event = decoder.decode(LEVEL + " Hello world!");
     assertNotNull(event);
 
     assertEquals(LEVEL, event.getLevel().toString());
@@ -45,7 +45,7 @@ public class LevelDecoderTest {
     // FIXME: Modify LevelParser to handle the "-1" in "%.-1level".
     Decoder decoder = new Decoder("%.-1level %msg%n");
     final String LEVEL = "TRACE";
-    ILoggingEvent event = decoder.decode(LEVEL.charAt(0) + " Hello world!\n");
+    ILoggingEvent event = decoder.decode(LEVEL.charAt(0) + " Hello world!");
     assertNotNull(event);
 
     assertEquals(LEVEL, event.getLevel().toString());

@@ -66,7 +66,7 @@ public class ClassOfCallerDecoderTest {
   }
 
   private void assertNoEventWhenClassNameIs(String value) {
-    final String INPUT = "2013-06-12 15:27:15.044 INFO  [" + value + "]: foo bar message\n";
+    final String INPUT = "2013-06-12 15:27:15.044 INFO  [" + value + "]: foo bar message";
     final String PATT = "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%class]: %msg%n";
     Decoder decoder = new Decoder(PATT);
     StaticLoggingEvent event = (StaticLoggingEvent)decoder.decode(INPUT);
@@ -74,7 +74,7 @@ public class ClassOfCallerDecoderTest {
   }
 
   private String getClassName(String className) {
-    final String INPUT = "2013-06-12 15:27:15.044 INFO  [" + className + "]: foo bar message\n";
+    final String INPUT = "2013-06-12 15:27:15.044 INFO  [" + className + "]: foo bar message";
     final String PATT = "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%class]: %msg%n";
     Decoder decoder = new Decoder(PATT);
     StaticLoggingEvent event = (StaticLoggingEvent)decoder.decode(INPUT);
