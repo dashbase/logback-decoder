@@ -27,11 +27,11 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
  *
  * @author Anthony Trinh
  */
-public class LevelDecoderTest extends DecoderTest {
+public class LevelDecoderTest {
 
   @Test
   public void decodesLevel() throws ParseException {
-    decoder.setLayoutPattern("%level %msg%n");
+    Decoder decoder = new Decoder("%level %msg%n");
     final String LEVEL = "TRACE";
     ILoggingEvent event = decoder.decode(LEVEL + " Hello world!\n");
     assertNotNull(event);
@@ -43,7 +43,7 @@ public class LevelDecoderTest extends DecoderTest {
   @Test
   public void decodesLevelShortPattern() throws ParseException {
     // FIXME: Modify LevelParser to handle the "-1" in "%.-1level".
-    decoder.setLayoutPattern("%.-1level %msg%n");
+    Decoder decoder = new Decoder("%.-1level %msg%n");
     final String LEVEL = "TRACE";
     ILoggingEvent event = decoder.decode(LEVEL.charAt(0) + " Hello world!\n");
     assertNotNull(event);

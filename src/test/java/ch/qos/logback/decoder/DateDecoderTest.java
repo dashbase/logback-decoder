@@ -31,7 +31,7 @@ import static org.junit.Assert.assertNotNull;
  *
  * @author Anthony Trinh
  */
-public class DateDecoderTest extends DecoderTest {
+public class DateDecoderTest {
 
   @Test
   public void testOnlyWithTime() throws Exception {
@@ -94,7 +94,7 @@ public class DateDecoderTest extends DecoderTest {
   @Test
   public void testTimezone() {
     String dateString = "2018-02-28 12:00:00,000";
-    decoder.setLayoutPattern("%d");
+    Decoder decoder = new Decoder("%d");
     LocalDateTime dateTime =
         LocalDateTime.of(2018, 2, 28, 12, 0, 0, 0);
 
@@ -123,26 +123,26 @@ public class DateDecoderTest extends DecoderTest {
     assertEquals(ZonedDateTime.of(summerDateTime, ZoneOffset.ofHours(-7)).toInstant().toEpochMilli(), event.getTimeStamp());
 
     // if timezone is specified in the pattern, then honor it.
-    decoder.setLayoutPattern("%d{\"" + CoreConstants.ISO8601_PATTERN + "\", Asia/Tokyo}");
+    decoder = new Decoder("%d{\"" + CoreConstants.ISO8601_PATTERN + "\", Asia/Tokyo}");
     ZoneId jst = ZoneId.of("JST", ZoneId.SHORT_IDS);
     event = decoder.decode(dateString);
     assertEquals(ZonedDateTime.of(dateTime, jst).toInstant().toEpochMilli(), event.getTimeStamp());
     event = decoder.decode(dateString, tz);
     assertEquals(ZonedDateTime.of(dateTime, jst).toInstant().toEpochMilli(), event.getTimeStamp());
 
-    decoder.setLayoutPattern("%d{\"" + CoreConstants.ISO8601_PATTERN + "\", JST}");
+    decoder = new Decoder("%d{\"" + CoreConstants.ISO8601_PATTERN + "\", JST}");
     event = decoder.decode(dateString);
     assertEquals(ZonedDateTime.of(dateTime, jst).toInstant().toEpochMilli(), event.getTimeStamp());
     event = decoder.decode(dateString, tz);
     assertEquals(ZonedDateTime.of(dateTime, jst).toInstant().toEpochMilli(), event.getTimeStamp());
 
-    decoder.setLayoutPattern("%d{ISO8601, JST}");
+    decoder = new Decoder("%d{ISO8601, JST}");
     event = decoder.decode(dateString);
     assertEquals(ZonedDateTime.of(dateTime, jst).toInstant().toEpochMilli(), event.getTimeStamp());
     event = decoder.decode(dateString, tz);
     assertEquals(ZonedDateTime.of(dateTime, jst).toInstant().toEpochMilli(), event.getTimeStamp());
 
-    decoder.setLayoutPattern("%d{ISO8601,JST}");
+    decoder = new Decoder("%d{ISO8601,JST}");
     event = decoder.decode(dateString);
     assertEquals(ZonedDateTime.of(dateTime, jst).toInstant().toEpochMilli(), event.getTimeStamp());
     event = decoder.decode(dateString, tz);
@@ -150,12 +150,12 @@ public class DateDecoderTest extends DecoderTest {
 
     // if timezone is provided in the timestamp, honor it.
     String dateStringWithTZ = "2018-02-28T12:00:00.000-0700";
-    decoder.setLayoutPattern("%d{\"yyyy-MM-dd'T'HH:mm:ss.SSSZ\"}");
+    decoder = new Decoder("%d{\"yyyy-MM-dd'T'HH:mm:ss.SSSZ\"}");
     event = decoder.decode(dateStringWithTZ);
     assertEquals(ZonedDateTime.of(dateTime, ZoneOffset.ofHours(-7)).toInstant().toEpochMilli(), event.getTimeStamp());
 
     dateStringWithTZ = "2018-02-28 12:00:00.000 JST";
-    decoder.setLayoutPattern("%d{\"yyyy-MM-dd HH:mm:ss.SSS z\"}");
+    decoder = new Decoder("%d{\"yyyy-MM-dd HH:mm:ss.SSS z\"}");
     event = decoder.decode(dateStringWithTZ);
     assertEquals(ZonedDateTime.of(dateTime, ZoneOffset.ofHours(9)).toInstant().toEpochMilli(), event.getTimeStamp());
   }
@@ -180,13 +180,14 @@ public class DateDecoderTest extends DecoderTest {
                            ? new SimpleDateFormat()
                            : new SimpleDateFormat(formatClean);
 
+    Decoder decoder;
     if (!format.isEmpty() && !timeZoneName.isEmpty()) {
       sdf.setTimeZone(TimeZone.getTimeZone(timeZoneName));
-      decoder.setLayoutPattern("%d{" + format + ", " + timeZoneName + "} %msg%n");
+      decoder = new Decoder("%d{" + format + ", " + timeZoneName + "} %msg%n");
     } else if (!format.isEmpty()) {
-      decoder.setLayoutPattern("%d{" + format + "} %msg%n");
+      decoder = new Decoder("%d{" + format + "} %msg%n");
     } else {
-      decoder.setLayoutPattern("%d %msg%n");
+      decoder = new Decoder("%d %msg%n");
     }
     if (timeZoneName.isEmpty()) {
       sdf.setTimeZone(TimeZone.getTimeZone(ZoneOffset.UTC));

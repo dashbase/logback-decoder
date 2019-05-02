@@ -23,7 +23,7 @@ import org.junit.Test;
  *
  * @author Anthony Trinh
  */
-public class ContextNameDecoderTest extends DecoderTest {
+public class ContextNameDecoderTest {
   @Test
   public void decodesNumericContextName() {
     assertEquals("123", getContextName("123"));
@@ -47,7 +47,7 @@ public class ContextNameDecoderTest extends DecoderTest {
   private void assertNoEventWhenContextNameIs(String value) {
     final String INPUT = "2013-06-12 15:27:15.044 INFO  <" + value + ">: foo bar message\n";
     final String PATT = "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level <%contextName>: %msg%n";
-    decoder.setLayoutPattern(PATT);
+    Decoder decoder = new Decoder(PATT);
     StaticLoggingEvent event = (StaticLoggingEvent)decoder.decode(INPUT);
     assertNull(event);
   }
@@ -55,7 +55,7 @@ public class ContextNameDecoderTest extends DecoderTest {
   private String getContextName(String name) {
     final String INPUT = "2013-06-12 15:27:15.044 INFO  <" + name + ">: foo bar message\n";
     final String PATT = "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level <%contextName>: %msg%n";
-    decoder.setLayoutPattern(PATT);
+    Decoder decoder = new Decoder(PATT);
     StaticLoggingEvent event = (StaticLoggingEvent)decoder.decode(INPUT);
     assertNotNull(event);
     assertEquals(name, INPUT.substring(event.contextNameOffset.start, event.contextNameOffset.end));

@@ -30,73 +30,64 @@ import java.util.regex.Pattern;
  * A {@code Decoder} parses information from a log string and produces an
  * {@link ILoggingEvent} as a result.
  */
-public abstract class Decoder {
+public class Decoder {
   private static final Pattern NAMED_GROUP = Pattern.compile("\\(\\?<([a-zA-Z][a-zA-Z0-9]*)>");
 
-  private final Logger logger;
+  private static final Logger logger = LoggerFactory.getLogger(Decoder.class);
 
-  private Pattern regexPattern;
-  private List<String> namedGroups;
-  private String layoutPattern;
-  private List<PatternInfo> patternInfo;
-  private List<FieldCapturer<StaticLoggingEvent>> parsers;
+  private final Pattern regexPattern;
+  private final List<String> namedGroups;
+  private final String layoutPattern;
+  private final List<PatternInfo> patternInfo;
+  private final List<FieldCapturer<StaticLoggingEvent>> parsers;
 
   /**
    * Constructs a {@code Decoder}
    */
-  protected Decoder() {
-    logger = LoggerFactory.getLogger(Decoder.class);
-  }
-
-  /**
-   * Sets the layout pattern used for decoding
-   *
-   * @param layoutPattern the desired layout pattern
-   */
-  public void setLayoutPattern(String layoutPattern) {
-    if (layoutPattern != null) {
-      PatternLayoutRegexUtil util = new PatternLayoutRegexUtil();
-      String regex = util.toRegex(layoutPattern) + "$";
-      regexPattern = Pattern.compile(regex);
-      namedGroups = new ArrayList<>();
-      Matcher matcher = NAMED_GROUP.matcher(regex);
-      while (matcher.find()) {
-        namedGroups.add(matcher.group(1));
-      }
-      patternInfo = PatternParser.parse(layoutPattern);
-
-      // only use patternInfo whose name matches names in namedGroups
-      for (int i = 0; i < namedGroups.size(); i++) {
-        if (namedGroups.get(i).startsWith(PatternNames.MDC_PREFIX)) {
-          continue;
-        }
-        if (!Objects.equals(namedGroups.get(i), patternInfo.get(i).getName())) {
-          throw new IllegalArgumentException(String.format(
-              "BUG!! Saw a field name that did not match the pattern info's name! (index={} expected={} actual={})",
-              i, namedGroups.get(i), patternInfo.get(i).getName()));
-        }
-      }
-
-      Map<String, String> mdcKeyMap = util.getProperties();
-      parsers = new ArrayList<>();
-      for (String pattName: namedGroups) {
-        if (pattName.startsWith(PatternNames.MDC_PREFIX)) {
-          String key = pattName.substring(PatternNames.MDC_PREFIX.length());
-          key = mdcKeyMap.getOrDefault(key, key);
-          parsers.add(new MDCValueParser(key));
-        } else {
-          FieldCapturer<StaticLoggingEvent> parser = DECODER_MAP.get(pattName);
-          if (parser == null) {
-            throw new IllegalArgumentException("No parser found for " + pattName);
-          }
-          parsers.add(parser);
-        }
-      }
-    } else {
-      regexPattern = null;
-      patternInfo = null;
+  public Decoder(String layoutPattern) {
+    if (layoutPattern == null) {
+      throw new IllegalArgumentException("layoutPattern cannot be null");
     }
+
     this.layoutPattern = layoutPattern;
+
+    PatternLayoutRegexUtil util = new PatternLayoutRegexUtil();
+    String regex = util.toRegex(layoutPattern) + "$";
+    regexPattern = Pattern.compile(regex);
+    namedGroups = new ArrayList<>();
+    Matcher matcher = NAMED_GROUP.matcher(regex);
+    while (matcher.find()) {
+      namedGroups.add(matcher.group(1));
+    }
+    patternInfo = PatternParser.parse(layoutPattern);
+
+    // only use patternInfo whose name matches names in namedGroups
+    for (int i = 0; i < namedGroups.size(); i++) {
+      if (namedGroups.get(i).startsWith(PatternNames.MDC_PREFIX)) {
+        continue;
+      }
+      if (!Objects.equals(namedGroups.get(i), patternInfo.get(i).getName())) {
+        throw new IllegalArgumentException(String.format(
+            "BUG!! Saw a field name that did not match the pattern info's name! (index={} expected={} actual={})",
+            i, namedGroups.get(i), patternInfo.get(i).getName()));
+      }
+    }
+
+    Map<String, String> mdcKeyMap = util.getProperties();
+    parsers = new ArrayList<>();
+    for (String pattName: namedGroups) {
+      if (pattName.startsWith(PatternNames.MDC_PREFIX)) {
+        String key = pattName.substring(PatternNames.MDC_PREFIX.length());
+        key = mdcKeyMap.getOrDefault(key, key);
+        parsers.add(new MDCValueParser(key));
+      } else {
+        FieldCapturer<StaticLoggingEvent> parser = DECODER_MAP.get(pattName);
+        if (parser == null) {
+          throw new IllegalArgumentException("No parser found for " + pattName);
+        }
+        parsers.add(parser);
+      }
+    }
   }
 
   /**

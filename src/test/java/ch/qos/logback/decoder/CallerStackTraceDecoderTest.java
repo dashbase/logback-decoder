@@ -12,19 +12,18 @@
  */
 package ch.qos.logback.decoder;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
+import ch.qos.logback.classic.spi.ILoggingEvent;
 import org.junit.Test;
 
-import ch.qos.logback.classic.spi.ILoggingEvent;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Tests decoding %caller
  *
  * @author Anthony Trinh
  */
-public class CallerStackTraceDecoderTest extends DecoderTest {
+public class CallerStackTraceDecoderTest {
 
   @Test
   public void decodesCallerStackTraceWithFileAndLine() {
@@ -33,7 +32,7 @@ public class CallerStackTraceDecoderTest extends DecoderTest {
         + "Caller+1   at mainPackage.sub.sample.Bar.createLoggingRequest(Bar.java:17)\n";
 
     final String PATT = "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{0}: %msg%caller%n";
-    decoder.setLayoutPattern(PATT);
+    Decoder decoder = new Decoder(PATT);
     ILoggingEvent event = decoder.decode(INPUT);
     assertNotNull(event);
 
@@ -59,7 +58,7 @@ public class CallerStackTraceDecoderTest extends DecoderTest {
         + "Caller+1   at mainPackage.sub.sample.Bar.createLoggingRequest\n";
 
     final String PATT = "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{0}: %msg%caller%n";
-    decoder.setLayoutPattern(PATT);
+    Decoder decoder = new Decoder(PATT);
     ILoggingEvent event = decoder.decode(INPUT);
     assertNotNull(event);
 
