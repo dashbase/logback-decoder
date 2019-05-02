@@ -28,8 +28,20 @@ public class DatePatternInfo extends PatternInfo {
   private DateTimeFormatter dateFormat;
   private ZoneId timeZone = ZoneOffset.UTC;
 
+  public boolean hasDate;
+  public boolean hasTimeZone;
+
   public DatePatternInfo() {
     dateFormat = ISO8601_FORMATTER;
+  }
+
+  @Override
+  public PatternInfo setOption(String option) {
+    super.setOption(option);
+    option = option.toLowerCase();
+    hasDate = option.contains("d") || option.contains(CoreConstants.ISO8601_STR.toLowerCase());
+    hasTimeZone = option.contains("x") || option.contains("z");
+    return this;
   }
 
   /**
@@ -44,8 +56,9 @@ public class DatePatternInfo extends PatternInfo {
    * Sets the date format
    * @param dateFormat desired date format
    */
-  public void setDateFormat(DateTimeFormatter dateFormat) {
+  public DatePatternInfo setDateFormat(DateTimeFormatter dateFormat) {
     this.dateFormat = dateFormat;
+    return this;
   }
 
   public void setTimeZone(ZoneId timeZone) {

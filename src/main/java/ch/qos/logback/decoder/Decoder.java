@@ -22,10 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -42,7 +39,7 @@ public abstract class Decoder {
   private List<String> namedGroups;
   private String layoutPattern;
   private List<PatternInfo> patternInfo;
-  private Map<String, String> mdcKeyMap;
+  private List<FieldCapturer<StaticLoggingEvent>> parsers;
 
   /**
    * Constructs a {@code Decoder}
@@ -67,7 +64,34 @@ public abstract class Decoder {
         namedGroups.add(matcher.group(1));
       }
       patternInfo = PatternParser.parse(layoutPattern);
-      mdcKeyMap = util.getProperties();
+
+      // only use patternInfo whose name matches names in namedGroups
+      for (int i = 0; i < namedGroups.size(); i++) {
+        if (namedGroups.get(i).startsWith(PatternNames.MDC_PREFIX)) {
+          continue;
+        }
+        if (!Objects.equals(namedGroups.get(i), patternInfo.get(i).getName())) {
+          throw new IllegalArgumentException(String.format(
+              "BUG!! Saw a field name that did not match the pattern info's name! (index={} expected={} actual={})",
+              i, namedGroups.get(i), patternInfo.get(i).getName()));
+        }
+      }
+
+      Map<String, String> mdcKeyMap = util.getProperties();
+      parsers = new ArrayList<>();
+      for (String pattName: namedGroups) {
+        if (pattName.startsWith(PatternNames.MDC_PREFIX)) {
+          String key = pattName.substring(PatternNames.MDC_PREFIX.length());
+          key = mdcKeyMap.getOrDefault(key, key);
+          parsers.add(new MDCValueParser(key));
+        } else {
+          FieldCapturer<StaticLoggingEvent> parser = DECODER_MAP.get(pattName);
+          if (parser == null) {
+            throw new IllegalArgumentException("No parser found for " + pattName);
+          }
+          parsers.add(parser);
+        }
+      }
     } else {
       regexPattern = null;
       patternInfo = null;
@@ -91,17 +115,13 @@ public abstract class Decoder {
    * @return the decoded {@link ILoggingEvent }or {@code null}
    * if line cannot be decoded
    */
-  public ILoggingEvent decode(String inputLine) {
+  public ILoggingEvent decode(CharSequence inputLine) {
     return decode(inputLine, ZoneOffset.UTC);
   }
 
-  public ILoggingEvent decode(String inputLine, ZoneId timeZone) {
+  public ILoggingEvent decode(CharSequence inputLine, ZoneId timeZone) {
     StaticLoggingEvent event = null;
     Matcher matcher = regexPattern.matcher(inputLine);
-    Map<String, String> mdcProperties = new HashMap<String, String>();
-    Map<String, Offset> mdcPropertyOffsets = new HashMap<String, Offset>();
-
-    logger.trace("regex: {}", regexPattern.toString());
 
     if (matcher.find() && matcher.groupCount() > 0) {
       event = new StaticLoggingEvent();
@@ -113,81 +133,18 @@ public abstract class Decoder {
 
         logger.debug("{} = {}", pattName, field);
 
-        if (PatternNames.MDC.equals(pattName)) {
-          // value is CSV. Convert it into Map.
-          int startOffset = offset.start;
-          for (String kv : field.split(",")) {
-            String[] keyValue = kv.split("=");
-            if (keyValue.length == 2) {
-              String key = keyValue[0].trim();
-              mdcProperties.put(key, keyValue[1]);
-              mdcPropertyOffsets.put(key,
-                  new Offset(startOffset + keyValue[0].length() + 1, startOffset + kv.length()));
-            } else {
-              logger.warn("Cannot parse {} in {}", kv, field);
-            }
-            startOffset += kv.length() + 1;
-          }
-        } else if (pattName.startsWith(PatternNames.MDC_PREFIX)) {
-          if (!field.isEmpty()) {
-            String key = pattName.substring(PatternNames.MDC_PREFIX.length());
-            if (mdcKeyMap.containsKey(key)) {
-              key = mdcKeyMap.get(key);
-            }
-            mdcProperties.put(key, field);
-            mdcPropertyOffsets.put(key, offset);
-          } else {
-            logger.debug("empty field for {}", pattName);
-          }
-        } else {
-          FieldCapturer<StaticLoggingEvent> parser = DECODER_MAP.get(pattName);
-          if (parser == null) {
-            logger.warn("No decoder for [{}, {}]", pattName, field);
-          } else {
-            parser.captureField(event, field, offset, getPatternInfo(patternIndex, pattName, timeZone));
-          }
+        FieldCapturer<StaticLoggingEvent> parser = parsers.get(patternIndex);
+        PatternInfo inf = patternInfo.get(patternIndex);
+        if (inf != null && inf instanceof DatePatternInfo) {
+          ((DatePatternInfo) inf).setTimeZone(timeZone);
         }
+        parser.captureField(event, field, offset, inf);
 
         patternIndex++;
       }
     }
 
-    if (!mdcProperties.isEmpty()) {
-      event.setMDCPropertyMap(mdcProperties);
-      event.mdcPropertyOffsets = mdcPropertyOffsets;
-    }
-
     return event;
-  }
-
-  /**
-   * Gets the pattern info for a sub-pattern
-   *
-   * @param patternIndex the index of the sub-pattern
-   * @param fieldName the name of the sub-pattern
-   * @return the pattern info or {@code null} if not found
-   */
-  private PatternInfo getPatternInfo(int patternIndex, String fieldName, ZoneId timeZone) {
-    PatternInfo inf = patternInfo.get(patternIndex);
-    if (inf != null) {
-
-      // get the value only if the field name at this index
-      // matches the given name
-      String infName = PatternNames.getFullName(inf.getName());
-      if (infName != null && !infName.equals(fieldName)) {
-        logger.error(
-              "BUG!! Saw a field name that did not match the pattern info's " +
-              "name! (index={} expected={} actual={})",
-              new Object[] { patternIndex, fieldName, infName });
-
-        inf = null;
-      }
-
-      if (inf instanceof DatePatternInfo) {
-        ((DatePatternInfo) inf).setTimeZone(timeZone);
-      }
-    }
-    return inf;
   }
 
   @SuppressWarnings("serial")
@@ -203,5 +160,6 @@ public abstract class Decoder {
       put(PatternNames.METHOD_OF_CALLER, new MethodOfCallerParser());
       put(PatternNames.MESSAGE, new MessageParser());
       put(PatternNames.THREAD_NAME, new ThreadNameParser());
+      put(PatternNames.MDC, new MDCMapParser());
     }};
 }

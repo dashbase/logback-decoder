@@ -146,7 +146,7 @@ public class PatternParser {
    */
   public static List<PatternInfo> parse(String layoutPattern) {
 
-    List<PatternInfo> list = new LinkedList<PatternInfo>();
+    List<PatternInfo> list = new ArrayList<>();
 
     Matcher m = REGEX_PATTERN.matcher(layoutPattern);
 
@@ -170,9 +170,13 @@ public class PatternParser {
       if (name == null) {
         throw new IllegalArgumentException("Unknown pattern name at " + start + " in the pattern: " + layoutPattern);
       }
-
-      boolean isDate = "date".equals(PatternNames.getFullName(name));
-      PatternInfo inf = isDate ? new DatePatternInfo() : new PatternInfo();
+      name = PatternNames.getFullName(name);
+      PatternInfo inf;
+      if (PatternNames.DATE.equals(name)){
+        inf = new DatePatternInfo().setDateFormat(parseDateFormat(opt.value()));
+      } else {
+        inf = new PatternInfo();
+      }
 
       inf.setOriginal(m.group(0))
           .setStart(start)
@@ -181,10 +185,6 @@ public class PatternParser {
           .setName(name)
           .setOption(opt.value())
           .setFormatModifier(m.group(FORMAT));
-
-      if (isDate) {
-        ((DatePatternInfo)inf).setDateFormat(parseDateFormat(opt.value()));
-      }
 
       // recursively set children
       if (!group.value().isEmpty()) {

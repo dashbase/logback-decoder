@@ -45,14 +45,14 @@ public class DateParser implements FieldCapturer<StaticLoggingEvent> {
         String datePattern = dpi.getOption().toLowerCase();
 
         // If the date pattern only contains time, use the today's year/month/day when parsing the input string.
-        if (dtf != DatePatternInfo.ISO8601_FORMATTER && !datePattern.contains("d") && !datePattern.contains("iso8601")) {
+        if (dtf != DatePatternInfo.ISO8601_FORMATTER && !dpi.hasDate) {
           LocalDate today = LocalDate.now(timeZone);
           dtf = new DateTimeFormatterBuilder().append(dtf)
               .parseDefaulting(ChronoField.YEAR, today.getYear())
               .parseDefaulting(ChronoField.MONTH_OF_YEAR, today.getMonthValue())
               .parseDefaulting(ChronoField.DAY_OF_MONTH, today.getDayOfMonth())
               .toFormatter().withZone(timeZone);
-        } else if (dtf.getZone() == null && !datePattern.contains("z") && !datePattern.contains("x")) {
+        } else if (dtf.getZone() == null && !dpi.hasTimeZone) {
           // if TimeZone is not specified in the pattern format, use the one provided.
           dtf = dtf.withZone(timeZone);
         }
