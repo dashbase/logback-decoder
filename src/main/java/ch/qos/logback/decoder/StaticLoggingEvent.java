@@ -31,6 +31,7 @@ public class StaticLoggingEvent extends LoggingEvent {
   private String _methodNameOfCaller;
   private List<StackTraceElement> _callerStackTrace;
 
+  public Offset levelOffset;
   public Offset threadNameOffset;
   public Offset loggerNameOffset;
   public Offset messageOffset;

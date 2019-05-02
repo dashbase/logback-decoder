@@ -34,8 +34,6 @@ import java.util.regex.Pattern;
 public class Decoder {
   private static final Pattern NAMED_GROUP = Pattern.compile("\\(\\?<([a-zA-Z][a-zA-Z0-9]*)>");
 
-  private static final Logger logger = LoggerFactory.getLogger(Decoder.class);
-
   private final Pattern regexPattern;
   private final List<String> namedGroups;
   private final String layoutPattern;
@@ -126,17 +124,14 @@ public class Decoder {
 
       int patternIndex = 0;
       for (String pattName: namedGroups) {
-        String field = matcher.group(pattName);
         Offset offset = new Offset(matcher.start(pattName), matcher.end(pattName));
-
-        logger.debug("{} = {}", pattName, field);
 
         FieldCapturer<StaticLoggingEvent> parser = parsers.get(patternIndex);
         PatternInfo inf = patternInfo.get(patternIndex);
         if (inf != null && inf instanceof DatePatternInfo) {
           ((DatePatternInfo) inf).setTimeZone(timeZone);
         }
-        parser.captureField(event, field, offset, inf);
+        parser.captureField(event, inputLine.subSequence(offset.start, offset.end), offset, inf);
 
         patternIndex++;
       }

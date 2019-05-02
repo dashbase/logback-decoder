@@ -10,9 +10,9 @@ public class MDCValueParser implements FieldCapturer<StaticLoggingEvent> {
     }
 
     @Override
-    public void captureField(StaticLoggingEvent event, String field, Offset offset, PatternInfo info) {
-        if (!field.isEmpty()) {
-            event.putMDC(key, field, offset);
+    public void captureField(StaticLoggingEvent event, CharSequence field, Offset offset, PatternInfo info) {
+        if (field.length() > 0)  {
+            event.putMDC(key, field.toString(), offset);
         }
     }
 }

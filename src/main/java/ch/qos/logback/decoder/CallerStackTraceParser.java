@@ -35,7 +35,7 @@ public class CallerStackTraceParser implements FieldCapturer<StaticLoggingEvent>
       );
 
   @Override
-  public void captureField(StaticLoggingEvent event, String fieldAsStr, Offset offset, PatternInfo info) {
+  public void captureField(StaticLoggingEvent event, CharSequence fieldAsStr, Offset offset, PatternInfo info) {
 
     List<StackTraceElement> stackTrace = new ArrayList<StackTraceElement>();
     Matcher m = PATTERN.matcher(fieldAsStr);
