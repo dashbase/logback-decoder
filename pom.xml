@@ -23,9 +23,9 @@
     <version>7</version>
   </parent>
 
-  <groupId>ch.qos.logback</groupId>
+  <groupId>io.dashbase</groupId>
   <artifactId>logback-decoder</artifactId>
-  <version>0.1.5</version>
+  <version>0.2.0</version>
   <packaging>jar</packaging>
   <name>logback-decoder</name>
   <description>The logback log file decoder</description>
@@ -119,6 +119,12 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
       <version>3.8.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>24.0-jre</version>
     </dependency>
 
   </dependencies>

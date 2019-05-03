@@ -102,7 +102,8 @@ public class DateDecoderTest {
     assertEquals(ZonedDateTime.of(dateTime, ZoneOffset.UTC).toInstant().toEpochMilli(), event.getTimeStamp());
 
     ZoneId tz = ZoneOffset.ofHours(8);
-    event = decoder.decode(dateString, tz);
+    decoder = new Decoder("%d", tz);
+    event = decoder.decode(dateString);
     assertEquals(ZonedDateTime.of(dateTime, tz).toInstant().toEpochMilli(), event.getTimeStamp());
 
     // verify that Daylight Saving Time is handled properly
@@ -111,15 +112,17 @@ public class DateDecoderTest {
         LocalDateTime.of(2018, 7, 8, 12, 0, 0, 0);
 
     tz = ZoneId.of("America/Los_Angeles");
-    event = decoder.decode(dateString, tz);
+    decoder = new Decoder("%d", tz);
+    event = decoder.decode(dateString);
     assertEquals(ZonedDateTime.of(dateTime, ZoneOffset.ofHours(-8)).toInstant().toEpochMilli(), event.getTimeStamp());
-    event = decoder.decode(summerDateString, tz);
+    event = decoder.decode(summerDateString);
     assertEquals(ZonedDateTime.of(summerDateTime, ZoneOffset.ofHours(-7)).toInstant().toEpochMilli(), event.getTimeStamp());
 
     tz = ZoneId.of("PST", ZoneId.SHORT_IDS);
-    event = decoder.decode(dateString, tz);
+    decoder = new Decoder("%d", tz);
+    event = decoder.decode(dateString);
     assertEquals(ZonedDateTime.of(dateTime, ZoneOffset.ofHours(-8)).toInstant().toEpochMilli(), event.getTimeStamp());
-    event = decoder.decode(summerDateString, tz);
+    event = decoder.decode(summerDateString);
     assertEquals(ZonedDateTime.of(summerDateTime, ZoneOffset.ofHours(-7)).toInstant().toEpochMilli(), event.getTimeStamp());
 
     // if timezone is specified in the pattern, then honor it.
@@ -127,25 +130,29 @@ public class DateDecoderTest {
     ZoneId jst = ZoneId.of("JST", ZoneId.SHORT_IDS);
     event = decoder.decode(dateString);
     assertEquals(ZonedDateTime.of(dateTime, jst).toInstant().toEpochMilli(), event.getTimeStamp());
-    event = decoder.decode(dateString, tz);
+    decoder = new Decoder("%d{\"" + CoreConstants.ISO8601_PATTERN + "\", Asia/Tokyo}", tz);
+    event = decoder.decode(dateString);
     assertEquals(ZonedDateTime.of(dateTime, jst).toInstant().toEpochMilli(), event.getTimeStamp());
 
     decoder = new Decoder("%d{\"" + CoreConstants.ISO8601_PATTERN + "\", JST}");
     event = decoder.decode(dateString);
     assertEquals(ZonedDateTime.of(dateTime, jst).toInstant().toEpochMilli(), event.getTimeStamp());
-    event = decoder.decode(dateString, tz);
+    decoder = new Decoder("%d{\"" + CoreConstants.ISO8601_PATTERN + "\", JST}", tz);
+    event = decoder.decode(dateString);
     assertEquals(ZonedDateTime.of(dateTime, jst).toInstant().toEpochMilli(), event.getTimeStamp());
 
     decoder = new Decoder("%d{ISO8601, JST}");
     event = decoder.decode(dateString);
     assertEquals(ZonedDateTime.of(dateTime, jst).toInstant().toEpochMilli(), event.getTimeStamp());
-    event = decoder.decode(dateString, tz);
+    decoder = new Decoder("%d{ISO8601, JST}", tz);
+    event = decoder.decode(dateString);
     assertEquals(ZonedDateTime.of(dateTime, jst).toInstant().toEpochMilli(), event.getTimeStamp());
 
     decoder = new Decoder("%d{ISO8601,JST}");
     event = decoder.decode(dateString);
     assertEquals(ZonedDateTime.of(dateTime, jst).toInstant().toEpochMilli(), event.getTimeStamp());
-    event = decoder.decode(dateString, tz);
+    decoder = new Decoder("%d{ISO8601,JST}", tz);
+    event = decoder.decode(dateString);
     assertEquals(ZonedDateTime.of(dateTime, jst).toInstant().toEpochMilli(), event.getTimeStamp());
 
     // if timezone is provided in the timestamp, honor it.

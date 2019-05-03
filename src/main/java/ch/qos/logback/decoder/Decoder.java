@@ -13,13 +13,9 @@
 package ch.qos.logback.decoder;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.pattern.parser2.DatePatternInfo;
 import ch.qos.logback.core.pattern.parser2.PatternInfo;
 import ch.qos.logback.core.pattern.parser2.PatternParser;
 import ch.qos.logback.decoder.regex.PatternLayoutRegexUtil;
-import ch.qos.logback.decoder.regex.RegexPatterns;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -44,6 +40,10 @@ public class Decoder {
    * Constructs a {@code Decoder}
    */
   public Decoder(String layoutPattern) {
+    this(layoutPattern, ZoneOffset.UTC);
+  }
+
+  public Decoder(String layoutPattern, ZoneId defaultTimeZone) {
     if (layoutPattern == null) {
       throw new IllegalArgumentException("layoutPattern cannot be null");
     }
@@ -64,7 +64,7 @@ public class Decoder {
     while (matcher.find()) {
       namedGroups.add(matcher.group(1));
     }
-    patternInfo = PatternParser.parse(layoutPattern);
+    patternInfo = PatternParser.parse(layoutPattern, defaultTimeZone);
 
     // only use patternInfo whose name matches names in namedGroups
     for (int i = 0; i < namedGroups.size(); i++) {
@@ -112,14 +112,10 @@ public class Decoder {
    * if line cannot be decoded
    */
   public ILoggingEvent decode(CharSequence inputLine) {
-    return decode(inputLine, ZoneOffset.UTC);
-  }
-
-  public ILoggingEvent decode(CharSequence inputLine, ZoneId timeZone) {
     StaticLoggingEvent event = null;
     Matcher matcher = regexPattern.matcher(inputLine);
 
-    if (matcher.find() && matcher.groupCount() > 0) {
+    if (matcher.matches() && matcher.groupCount() > 0) {
       event = new StaticLoggingEvent();
 
       int patternIndex = 0;
@@ -128,9 +124,6 @@ public class Decoder {
 
         FieldCapturer<StaticLoggingEvent> parser = parsers.get(patternIndex);
         PatternInfo inf = patternInfo.get(patternIndex);
-        if (inf != null && inf instanceof DatePatternInfo) {
-          ((DatePatternInfo) inf).setTimeZone(timeZone);
-        }
         parser.captureField(event, inputLine.subSequence(offset.start, offset.end), offset, inf);
 
         patternIndex++;
