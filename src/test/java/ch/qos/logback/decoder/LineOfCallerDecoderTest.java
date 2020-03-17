@@ -27,19 +27,24 @@ public class LineOfCallerDecoderTest {
 
   @Test
   public void decodesLineNumber() {
-    assertEquals(123, getLineNumber("123"));
+    var event = parse("123");
+    assertEquals(123, event.getLineNumberOfCaller());
+    assertEquals(57, event.lineNumberOffset.start);
+    assertEquals(60, event.lineNumberOffset.end);
   }
 
   // negative should never happen but Decoder should be able to parse it anyway
   @Test
   public void decodesNegativeLineNumber() {
-    assertEquals(-2222, getLineNumber("-2222"));
+    var event = parse("-2222");
+    assertEquals(-2222, event.getLineNumberOfCaller());
   }
 
   // zero should never happen but Decoder should be able to parse it anyway
   @Test
   public void decodesZeroLineNumber() {
-    assertEquals(0, getLineNumber("0"));
+    var event = parse("0");
+    assertEquals(0, event.getLineNumberOfCaller());
   }
 
   @Test
@@ -51,12 +56,12 @@ public class LineOfCallerDecoderTest {
     assertNull(event);
   }
 
-  private int getLineNumber(String line) {
+  private StaticLoggingEvent parse(String line) {
     final String INPUT = "2013-06-12 15:27:15.044 INFO  [main] KdbFxFeedhandlerApp " + line + ": Running com.ubs.sprint.kdb.fx.feedhandler.server.KdbFxFeedhandlerApp from directory: /sbclocal/sprint/kdb-fx-feedhandler/0.0.23/bin/.";
     final String PATT = "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{0} %line: %msg%n";
     Decoder decoder = new Decoder(PATT);
     StaticLoggingEvent event = (StaticLoggingEvent)decoder.decode(INPUT);
     assertNotNull(event);
-    return event.getLineNumberOfCaller();
+    return event;
   }
 }

@@ -30,6 +30,7 @@ public class LineOfCallerParser implements FieldCapturer<StaticLoggingEvent> {
     }
 
     event.setLineNumberOfCaller(lineNumber);
+    event.lineNumberOffset = offset;
   }
 
 }
