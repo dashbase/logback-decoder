@@ -34,6 +34,8 @@ public class StaticLoggingEvent extends LoggingEvent {
   private Map<String, String> properties = Collections.emptyMap();
 
   public Offset levelOffset;
+  public Offset lineNumberOffset;
+  public Offset relativeTimestampOffset;
   public Offset threadNameOffset;
   public Offset loggerNameOffset;
   public Offset messageOffset;

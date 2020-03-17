@@ -10,11 +10,15 @@ public class RelativeTimeDecoderTest {
         var decoder = new Decoder("%relative %msg%n");
         var event = (StaticLoggingEvent) decoder.decode("1234 test message");
         assertEquals(1234L, event.getRelativeTimestamp());
+        assertEquals(0, event.relativeTimestampOffset.start);
+        assertEquals(4, event.relativeTimestampOffset.end);
         assertEquals("test message", event.getMessage());
 
         decoder = new Decoder("%r %msg%n");
         event = (StaticLoggingEvent) decoder.decode("1234 test message");
         assertEquals(1234L, event.getRelativeTimestamp());
+        assertEquals(0, event.relativeTimestampOffset.start);
+        assertEquals(4, event.relativeTimestampOffset.end);
         assertEquals("test message", event.getMessage());
     }
 
@@ -23,20 +27,28 @@ public class RelativeTimeDecoderTest {
         var decoder = new Decoder("%-4relative %msg%n");
         var event = (StaticLoggingEvent) decoder.decode("1234 test message");
         assertEquals(1234L, event.getRelativeTimestamp());
+        assertEquals(0, event.relativeTimestampOffset.start);
+        assertEquals(4, event.relativeTimestampOffset.end);
         assertEquals("test message", event.getMessage());
 
         event = (StaticLoggingEvent) decoder.decode("123  test message");
         assertEquals(123L, event.getRelativeTimestamp());
+        assertEquals(0, event.relativeTimestampOffset.start);
+        assertEquals(3, event.relativeTimestampOffset.end);
         assertEquals("test message", event.getMessage());
 
         decoder = new Decoder("%4relative %msg%n");
         event = (StaticLoggingEvent) decoder.decode("1234 test message");
         assertEquals(1234L, event.getRelativeTimestamp());
+        assertEquals(0, event.relativeTimestampOffset.start);
+        assertEquals(4, event.relativeTimestampOffset.end);
         assertEquals("test message", event.getMessage());
 
         decoder = new Decoder("%4relative %msg%n");
         event = (StaticLoggingEvent) decoder.decode("123 test message");
         assertEquals(123L, event.getRelativeTimestamp());
+        assertEquals(0, event.relativeTimestampOffset.start);
+        assertEquals(3, event.relativeTimestampOffset.end);
         assertEquals("test message", event.getMessage());
     }
 }

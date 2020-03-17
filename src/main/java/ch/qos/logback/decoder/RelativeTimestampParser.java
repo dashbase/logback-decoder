@@ -7,6 +7,7 @@ public class RelativeTimestampParser implements FieldCapturer<StaticLoggingEvent
     public void captureField(StaticLoggingEvent event, CharSequence text, Offset offset, PatternInfo info) {
         try {
             event.setRelativeTimestamp(Long.parseLong(text, 0, text.length(), 10));
+            event.relativeTimestampOffset = offset;
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Cannot parse the relative timestamp: " + text);
         }
